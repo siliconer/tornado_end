@@ -8,6 +8,8 @@ import os
 import sys
 import json
 from application import application
+from urllib2 import *
+import simplejson
 
 from tornado.options import define,options
 define("port",default=8888,help="run on th given port",type=int)
@@ -23,8 +25,13 @@ class  IndexHandler(tornado.web.RequestHandler):
 class  SearchHandler(tornado.web.RequestHandler):
 	def  post(self):
 		search_term = self.get_argument('searchterm')
+		query_url  = ' http://192.168.0.108:8983/solr/sra_collection_shard1_replica1/select?q=*' + searchterm + '*&wt=json&indent=true'
+		response = simplejson.load(query_url)
+		file = open(os.getcwd+"/static/search.json","w")
+       		file.write(str(response))
+		# print reponse
 		# self.write(search_term);
-		self.render('search.html')
+		self.render('search.html',json=file)
 	def write_error(self, status_code, **kwargs):
        		 self.write("SearchHandler darnit, user! You caused a %d error." % status_code)
 class WrappHandler(tornado.web.RequestHandler):
@@ -34,8 +41,11 @@ class WrappHandler(tornado.web.RequestHandler):
 class  IdHandler(tornado.web.RequestHandler):
 	def get(self,input_word):
 		print input_word
-		json_file = os.getcwd()+'/static/ERX081395.json'
-		json_body = json.load(open(json_file))['response']['docs'][0]
+		# json_file = os.getcwd()+'/static/ERX081395.json'
+		# json_body = json.load(open(json_file))['response']['docs'][0]
+		query_url  = ' http://192.168.0.108:8983/solr/sra_collection_shard1_replica1/select?q=*'+ searchterm+ '*&wt=json'
+		response = simplejson.load(query_url)
+		json_body = response['response']['docs'][0]
 		experiment_id=json_body['experiment_id']
 		title = json_body['title']
 		sample_id = json_body['experiment_id']
